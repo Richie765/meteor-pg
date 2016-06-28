@@ -36,8 +36,8 @@ function PgSelect(publishThis, collection, query, params, triggers) {
 
   var query = liveDb.select(query, params, triggers)
     .on('update', function(diff, data) {
-      console.log('diff', diff);
-      console.log('data', data);
+      // console.log('diff', diff);
+      // console.log('data', data);
 
       // Get id's and check uniqueness
 
@@ -79,11 +79,11 @@ function PgSelect(publishThis, collection, query, params, triggers) {
 
           if(index >= 0) {
             publishThis.changed(collection, _id, copy);
-            console.log("Changed", collection, _id, copy);
+            // console.log("Changed", collection, _id, copy);
           }
           else {
             publishThis.added(collection, _id, copy);
-            console.log("Added", collection, _id, copy);
+            // console.log("Added", collection, _id, copy);
           }
         });
       }
@@ -103,7 +103,7 @@ function PgSelect(publishThis, collection, query, params, triggers) {
 
           if(index === -1) {
             publishThis.removed(collection, _id);
-            console.log("Removed", collection, _id);
+            // console.log("Removed", collection, _id);
           }
         });
       };
@@ -121,7 +121,7 @@ function PgSelect(publishThis, collection, query, params, triggers) {
     });
 
   publishThis.onStop(function() {
-    console.log("Subscription was stopped");
+    // console.log("Subscription was stopped");
     query.stop();
   });
 }

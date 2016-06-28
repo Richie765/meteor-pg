@@ -1,13 +1,20 @@
 Template.leaderboard.onCreated(function () {
   this.subscribe('allPlayers');
+  this.subscribe('playerScore', 'Maxwell');
+
+  this.autorun(function() {
+    let player = PlayerScore.findOne({});
+    console.log(player);
+  });
 });
 
 Template.leaderboard.helpers({
   players: function () {
     return Players.find({}, { sort: { score: -1, name: 1 } });
   },
+
   selectedName: function () {
-    var player = Players.findOne({ id: Session.get("selectedPlayer") });
+    let player = Players.findOne(Session.get("selectedPlayer"));
     return player && player.name;
   }
 });
@@ -20,12 +27,12 @@ Template.leaderboard.events({
 
 Template.player.helpers({
   selected: function () {
-    return Session.equals("selectedPlayer", this.id) ? "selected" : '';
+    return Session.equals("selectedPlayer", this._id) ? "selected" : '';
   }
 });
 
 Template.player.events({
   'click': function () {
-    Session.set("selectedPlayer", this.id);
+    Session.set("selectedPlayer", this._id);
   }
 });

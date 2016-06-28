@@ -11,4 +11,5 @@ order as the query result. Therefor, you'll have to order the results using
 the find method on the collection on the client.
 
 # Todo
-* Implement fibers in methods
+* Implement fibers in methods, this may fix latency compensation as well
+* Subscribe server-side, is that possible?
