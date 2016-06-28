@@ -19,7 +19,8 @@ CREATE TABLE scores (
     id integer NOT NULL,
     assignment_id integer NOT NULL,
     student_id integer NOT NULL,
-    score integer NOT NULL
+    score integer NOT NULL,
+    remarks VARCHAR NULL
 );
 
 CREATE SEQUENCE scores_id_seq
@@ -82,7 +83,7 @@ COPY students (id, name) FROM stdin (FORMAT CSV);
 \.
 
 
-SELECT pg_catalog.setval('students_id_seq', 2, true);
+SELECT pg_catalog.setval('students_id_seq', 3, true);
 
 ALTER TABLE ONLY assignments
     ADD CONSTRAINT assignments_pkey PRIMARY KEY (id);

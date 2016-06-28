@@ -15,4 +15,4 @@ INNER JOIN students ON
 WHERE
   assignments.class_id = $1
 ORDER BY
-  score_id ASC
+  score DESC

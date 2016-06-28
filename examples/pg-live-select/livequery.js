@@ -13,15 +13,22 @@ var CONN_STR =
 
 // Load the SELECT query from an external file
 var QUERY = fs.readFileSync(path.join(__dirname, 'livequery.sql')).toString();
+var QUERY2 = `SELECT score > 70 AS top_score FROM scores`;
 
 // Initialize the live query processor
 var liveDb = new LivePg(CONN_STR, 'mytest');
 
 // Create a live select instance
-liveDb.select(QUERY, [ 1 ])
+liveDb.select(QUERY, [ 1 ], {
+  'scores': function(row) {
+    console.log(row);
+    return true;
+  }
+})
+// liveDb.select(QUERY2)
   .on('update', function(diff, data) {
-    // Handle the changes here...
-    console.log(diff, data);
+    // console.log(diff, data);
+    console.log(diff);
   });
 
 // On Ctrl+C, remove triggers and exit
