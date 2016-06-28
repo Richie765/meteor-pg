@@ -39,11 +39,17 @@ function PgSelect(publishThis, collection, query, params, triggers) {
       console.log('diff', diff);
       console.log('data', data);
 
-      // mapping
+      // Get id's and check uniqueness
 
       var newIds = data.map(row => row._id);
-      // TODO check uniqueness
 
+      var check = {};
+      newIds.forEach(id => {
+        if(id === null || id === undefined) throw new Meteor.Error("Record without _id");
+        if(check[id]) throw new Meteor.Error("Duplicate _id in dataset");
+
+        check[id] = 1;
+      });
 
       // Copied
 
@@ -51,7 +57,7 @@ function PgSelect(publishThis, collection, query, params, triggers) {
         throw new Meteor.Error("diff.copied should be null as each record must have a unique _id");
       };
 
-      // Add
+      // Add / Change
 
       if(diff.added !== null) {
         diff.added.forEach(function(added) {
@@ -82,7 +88,7 @@ function PgSelect(publishThis, collection, query, params, triggers) {
         });
       }
 
-      // removed
+      // Remove
 
       if(diff.removed) {
         diff.removed.forEach(function(removed) {
