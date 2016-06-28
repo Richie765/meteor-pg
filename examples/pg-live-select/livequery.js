@@ -1,11 +1,16 @@
+#!/usr/bin/env node --use-strict
+
 // pg-live-select example
 // To use example query from livequery.sql, load sample-data.sql into database
 var fs = require('fs');
 var path = require('path');
-var LivePg = require('../');
+var LivePg = require('pg-live-select');
 
 // Update this line with your username/password/host/database
-var CONN_STR = 'postgres://meteor:meteor@127.0.0.1/meteor';
+// var CONN_STR = 'postgres://meteor:meteor@127.0.0.1/meteor';
+var CONN_STR =
+  'postgres://' + process.env.USER + ':numtel@127.0.0.1:5438/postgres';
+
 // Load the SELECT query from an external file
 var QUERY = fs.readFileSync(path.join(__dirname, 'livequery.sql')).toString();
 
