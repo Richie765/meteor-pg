@@ -26,20 +26,53 @@ process.on('SIGINT', closeAndExit);
 // PgSelect function
 
 function PgSelect(publishThis, clientTable, query, params, triggers) {
-  var players = [
-    { name: 'Kepler', score: 40 },
-    { name: 'Leibniz', score: 50 },
-    { name: 'Maxwell', score: 60 },
-    { name: 'Planck', score: 70 },
-  ];
+  var initial = true;
 
-  _.each(players, function(player) {
-    publishThis.added('players', Random.id(), player);
-  });
+  liveDb.select(query, params, triggers)
+    .on('update', function(diff, data) {
+      // console.log(diff, data);
+      // console.log(diff);
 
-  publishThis.ready();
+      // Added
+      if(diff.added) {
+        diff.added.forEach(function(row) {
+          publishThis.added(clientTable, Random.id(), row);
+        });
+
+        if(initial) {
+          console.log("Issue ready");
+          publishThis.ready();
+          initial = false;
+        }
+      }
+    });
 }
 
 // Exports
 
 module.exports = PgSelect;
+
+
+/*
+
+How to do it
+
+* Keep a hash 'mapping', key is _index, value is _id
+
+event: moved
+*
+
+event: removed + added
+*
+
+event: added
+* for each record
+* mapping{_index} = random _id
+* call this.added with id and record
+
+event: removed
+event: copied
+
+
+
+*/

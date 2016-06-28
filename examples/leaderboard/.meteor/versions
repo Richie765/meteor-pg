@@ -44,7 +44,6 @@ modules-runtime@0.6.4_1
 mongo@1.1.9_1
 mongo-id@1.0.5
 npm-mongo@1.4.44_1
-numtel:pg@1.0.2
 numtel:pg-server@1.0.1
 observe-sequence@1.0.12
 ordered-dict@1.0.8
