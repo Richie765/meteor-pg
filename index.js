@@ -7,8 +7,8 @@ var pgp = require('pg-promise')();
 
 // TODO Use environment variables and proper defaults
 
-var PG_URL = 'postgres://' + process.env.USER + ':numtel@127.0.0.1:5438/postgres';
-var PG_CHANNEL = 'default_channel';
+var PG_URL = process.env.PG_URL ? process.env.PG_URL : 'postgres://' + process.env.USER + ':numtel@127.0.0.1:5438/postgres';
+var PG_CHANNEL = process.env.PG_CHANNEL ? process.env.PG_CHANNEL : 'default_channel';
 
 // liveDb connection
 
