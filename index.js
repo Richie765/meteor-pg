@@ -30,18 +30,76 @@ var db = pgp(PG_URL);
 
 // PgSelect function
 
-function PgSelect(publishThis, clientTable, query, params, triggers) {
+function PgSelect(publishThis, collection, query, params, triggers) {
   var initial = true;
 
-  liveDb.select(query, params, triggers)
+  console.log("New Select");
+
+  var mapping = {};
+
+  var query = liveDb.select(query, params, triggers)
     .on('update', function(diff, data) {
       // console.log(diff, data);
       // console.log(diff);
 
+      // Moved
+      if(diff.moved) {
+        console.log("Pending Moved", diff.moved);
+      }
+
+      // Changed
+      if(diff.removed && diff.added) {
+        diff.added.forEach(function(row, index, object) {
+          var _index = row._index;
+
+          // find removed item
+          var removedIndex = diff.removed.findIndex(row => row._index === _index);
+
+          if(removedIndex >= 0) {
+            // Get the _id
+            var _id = mapping[_index];
+            if(!_id) throw new Meteor.Error("Cannot update a record we didn't see before");
+
+            // Update publication
+            publishThis.changed(collection, _id, row);
+            console.log("Changed", collection, _id, row);
+
+            // Remove added
+            object.splice(index, 1);
+
+            // Remove removed
+            diff.removed.splice(removedIndex, 1);
+          }
+        });
+
+        // Check if all added is done
+
+        if(diff.added.length === 0) {
+          diff.added = null;
+        }
+        else {
+          console.log("Still items left in 'added', this may be completely normal.");
+        }
+
+        // Check if all removed` is done
+
+        if(diff.removed.length === 0) {
+          diff.removed = null;
+        }
+        else {
+          console.log("Still items left in 'removed', this may be completely normal.");
+        }
+      }
+
       // Added
       if(diff.added) {
         diff.added.forEach(function(row) {
-          publishThis.added(clientTable, Random.id(), row);
+          if(mapping[row._index]) throw new Meteor.Error("Cannot overwrite existing mapping");
+
+          var _id = Random.id();
+          mapping[row._index] = _id;
+          publishThis.added(collection, _id, row);
+          console.log("Added", collection, _id, row);
         });
 
         if(initial) {
@@ -50,7 +108,25 @@ function PgSelect(publishThis, clientTable, query, params, triggers) {
           initial = false;
         }
       }
+
+      // Removed
+      if(diff.removed) {
+        console.log("Not implemented yet: Pending Removed", diff.removed);
+      }
+
+      // Copied
+      if(diff.copied) {
+        console.log("Not implemented yet: Copied", diff.copied);
+      }
+
+      console.log(mapping);
+
     });
+
+  publishThis.onStop(function() {
+    console.log("Subscription was stopped");
+    query.stop();
+  });
 }
 
 // Exports
@@ -67,15 +143,21 @@ How to do it
 event: moved
 *
 
-event: removed + added
-*
+event: removed + added (done)
+* Match removed and added
+* Get _id from mapping
+* Change collection
+* Check for anything remaining
 
-event: added
-* for each record
-* mapping{_index} = random _id
-* call this.added with id and record
+event: added (done)
+* check for existing mapping
+* Get random _id
+* mapping{_index} = _id
+* call this.added with _id and record
 
 event: removed
+*
+
 event: copied
 
 

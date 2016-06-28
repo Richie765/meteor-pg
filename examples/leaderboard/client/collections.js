@@ -2,4 +2,3 @@
 // as on the server the data isn't coming from Mongo.
 
 Players = new Mongo.Collection('players');
-Meteor.subscribe('allPlayers');
