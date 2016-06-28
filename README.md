@@ -1,5 +1,4 @@
 # Notes
-
 Every query must have a \_id field that must be unique for the resultset.
 For simple queries, this can be the PK. For multi-table queries, it can be
 the concatenation of multiple PK's. Note, the \_id just has to uniquely
@@ -10,6 +9,8 @@ The order of the records in the collection on the client-side is not the same
 order as the query result. Therefor, you'll have to order the results using
 the find method on the collection on the client.
 
+Latency compensation works (client side stub methods), but there is some
+'flicker', I don't know yet how to solve this.
+
 # Todo
-* Implement fibers in methods, this may fix latency compensation as well
 * Subscribe server-side, is that possible?

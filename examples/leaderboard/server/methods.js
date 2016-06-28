@@ -11,21 +11,12 @@ Meteor.methods({
     // Perform query
 
     let sql = `
+      -- SELECT pg_sleep(0.5);
       UPDATE players
       SET score = score + $1
       WHERE id = $2
     `;
 
-    // NOTE Query is executed asynchroniously. This means:
-    // * Thrown errors won't be sent to the client and won't be shown on the server
-    //   either.
-    // * You can't return a result from pg this way.
-    // * Perhaps these limitations can be solved with fibers later on.
-
-    db.none(sql, [ amount, id ])
-      .catch(err => {
-        console.log(err); // Extra logging otherwise we won't know of any errors
-        throw new Meteor.Error(err);
-      });
+    Promise.await(db.any(sql, [ amount, id ]));
   }
 });
