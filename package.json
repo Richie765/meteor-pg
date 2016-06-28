@@ -16,5 +16,9 @@
     "reactive"
   ],
   "author": "Richard Faasen",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "pg-live-select": "^1.0.3",
+    "pg-native": "^1.10.0"
+  }
 }
