@@ -1,0 +1,4 @@
+{
+  "port": 5438,
+  "initialize": "leaderboard.sql"
+}
