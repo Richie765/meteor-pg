@@ -1,15 +1,16 @@
 var LivePg = require('pg-live-select');
-
-// Database connection
+var pgp = require('pg-promise')();
 
 // Update this connection string to match your configuration!
 // When using an externally configured PostgreSQL server, the default port
 // is 5432.
 
-// TODO Use envoronment variables and proper defaults
+// TODO Use environment variables and proper defaults
 
 var PG_URL = 'postgres://' + process.env.USER + ':numtel@127.0.0.1:5438/postgres';
 var PG_CHANNEL = 'default_channel';
+
+// liveDb connection
 
 var liveDb = new LivePg(PG_URL, PG_CHANNEL);
 
@@ -22,6 +23,10 @@ var closeAndExit = function() {
 process.on('SIGTERM', closeAndExit);
 // Close connections on exit (ctrl + c)
 process.on('SIGINT', closeAndExit);
+
+// pg-promise connection
+
+var db = pgp(PG_URL);
 
 // PgSelect function
 
@@ -50,8 +55,8 @@ function PgSelect(publishThis, clientTable, query, params, triggers) {
 
 // Exports
 
-module.exports = PgSelect;
-
+exports.PgSelect = PgSelect;
+exports.db = db;
 
 /*
 
