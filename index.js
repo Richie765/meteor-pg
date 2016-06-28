@@ -32,95 +32,86 @@ var db = pgp(PG_URL);
 
 function PgSelect(publishThis, collection, query, params, triggers) {
   var initial = true;
-
-  console.log("New Select");
-
-  var mapping = {};
+  var oldIds = [];
 
   var query = liveDb.select(query, params, triggers)
     .on('update', function(diff, data) {
-      // console.log(diff, data);
-      // console.log(diff);
+      console.log('diff', diff);
+      console.log('data', data);
 
-      // Moved
-      if(diff.moved) {
-        console.log("Pending Moved", diff.moved);
-      }
+      // mapping
 
-      // Changed
-      if(diff.removed && diff.added) {
-        diff.added.forEach(function(row, index, object) {
-          var _index = row._index;
+      var newIds = data.map(row => row._id);
+      // TODO check uniqueness
 
-          // find removed item
-          var removedIndex = diff.removed.findIndex(row => row._index === _index);
-
-          if(removedIndex >= 0) {
-            // Get the _id
-            var _id = mapping[_index];
-            if(!_id) throw new Meteor.Error("Cannot update a record we didn't see before");
-
-            // Update publication
-            publishThis.changed(collection, _id, row);
-            console.log("Changed", collection, _id, row);
-
-            // Remove added
-            object.splice(index, 1);
-
-            // Remove removed
-            diff.removed.splice(removedIndex, 1);
-          }
-        });
-
-        // Check if all added is done
-
-        if(diff.added.length === 0) {
-          diff.added = null;
-        }
-        else {
-          console.log("Still items left in 'added', this may be completely normal.");
-        }
-
-        // Check if all removed` is done
-
-        if(diff.removed.length === 0) {
-          diff.removed = null;
-        }
-        else {
-          console.log("Still items left in 'removed', this may be completely normal.");
-        }
-      }
-
-      // Added
-      if(diff.added) {
-        diff.added.forEach(function(row) {
-          if(mapping[row._index]) throw new Meteor.Error("Cannot overwrite existing mapping");
-
-          var _id = Random.id();
-          mapping[row._index] = _id;
-          publishThis.added(collection, _id, row);
-          console.log("Added", collection, _id, row);
-        });
-
-        if(initial) {
-          console.log("Issue ready");
-          publishThis.ready();
-          initial = false;
-        }
-      }
-
-      // Removed
-      if(diff.removed) {
-        console.log("Not implemented yet: Pending Removed", diff.removed);
-      }
 
       // Copied
+
       if(diff.copied) {
-        console.log("Not implemented yet: Copied", diff.copied);
+        throw new Meteor.Error("diff.copied should be null as each record must have a unique _id");
+      };
+
+      // Add
+
+      if(diff.added !== null) {
+        diff.added.forEach(function(added) {
+          // Get _id
+
+          var _id = added._id;
+          if(!_id) throw new Meteor.Error("Each record must have an _id field");
+
+          // Create copy of the record minus technical fields
+
+          var copy = _.clone(added);
+          delete copy._index;
+          delete copy._hash;
+          delete copy._id;
+
+          // Use 'changed' if it existed before, othewise 'added'
+
+          var index = oldIds.findIndex(newId => newId === _id);
+
+          if(index >= 0) {
+            publishThis.changed(collection, _id, copy);
+            console.log("Changed", collection, _id, copy);
+          }
+          else {
+            publishThis.added(collection, _id, copy);
+            console.log("Added", collection, _id, copy);
+          }
+        });
       }
 
-      console.log(mapping);
+      // removed
 
+      if(diff.removed) {
+        diff.removed.forEach(function(removed) {
+          // Get _id
+
+          var _id = oldIds[removed._index - 1];
+          if(!_id) throw new Meteor.Error("Cannot remove a record we didn't see before");
+
+          // Skip if it's still in our dataset
+
+          var index = newIds.findIndex(newId => newId === _id);
+
+          if(index === -1) {
+            publishThis.removed(collection, _id);
+            console.log("Removed", collection, _id);
+          }
+        });
+      };
+
+      // Store current ids for next time
+
+      oldIds = newIds;
+
+      // Issue ready if needed
+
+      if(initial) {
+        publishThis.ready();
+        initial = false;
+      }
     });
 
   publishThis.onStop(function() {

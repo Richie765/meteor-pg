@@ -11,7 +11,8 @@ are altered to reflect the order in the record set.
 The '\_index' starts with 1 for the first record.
 * The row parameter of the trigger receives the full record of the table, including fields
 that are not used in the query.
-* When the returned records come from the cache, a \_hash key is added.
+* When the returned records come from the cache, a \_hash key is added. It is a hash
+over the data in the record.
 
 ## Setup
 

@@ -1,12 +1,10 @@
 # Notes
 
-The '\_id' field in the collection is synthetic. It is not a field from the database.
-It is there just for the purpose to transfer the data from the server to the
-client. It is created randomly as new records are added to the collection.
-If will be different each time you subscribe to the publication.
+Every query must have a \_id field that must be unique for the resultset.
+For simple queries, this can be the PK. For multi-table queries, it can be
+the concatenation of multiple PK's. Note, the \_id just has to uniquely
+identify the row so you don't always have to include the PK's of all the
+tables involved.
 
 # Todo
-* Implement removed
-* Implement moved
-* Implement copied
 * Implement fibers in methods
