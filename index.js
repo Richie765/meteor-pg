@@ -10,6 +10,20 @@ var pgp = require('pg-promise')();
 var PG_URL = process.env.PG_URL ? process.env.PG_URL : 'postgres://' + process.env.USER + ':numtel@127.0.0.1:5438/postgres';
 var PG_CHANNEL = process.env.PG_CHANNEL ? process.env.PG_CHANNEL : 'default_channel';
 
+// pg-promise connection
+
+var db = pgp(PG_URL);
+
+try {
+  console.log('meteor-pg: connecting to', PG_URL);
+  Promise.await(db.connect());
+  console.log('meteor-pg: success');
+}
+catch(err) {
+  console.error("meteor-pg: failed");
+  throw err;
+}
+
 // liveDb connection
 
 var liveDb = new LivePg(PG_URL, PG_CHANNEL);
@@ -23,10 +37,6 @@ var closeAndExit = function() {
 process.on('SIGTERM', closeAndExit);
 // Close connections on exit (ctrl + c)
 process.on('SIGINT', closeAndExit);
-
-// pg-promise connection
-
-var db = pgp(PG_URL);
 
 // select function
 
@@ -45,8 +55,8 @@ function live_select(sub, collection, query, params, triggers) {
 
       var check = {};
       newIds.forEach(id => {
-        if(id === null || id === undefined) throw new Meteor.Error("Record without _id");
-        if(check[id]) throw new Meteor.Error("Duplicate _id in dataset");
+        if(id === null || id === undefined) throw new Meteor.Error('meteor-pg: record without _id');
+        if(check[id]) throw new Meteor.Error('meteor-pg: duplicate _id in resultset');
 
         check[id] = 1;
       });
@@ -54,7 +64,7 @@ function live_select(sub, collection, query, params, triggers) {
       // Copied
 
       if(diff.copied) {
-        throw new Meteor.Error("diff.copied should be null as each record must have a unique _id");
+        throw new Meteor.Error('meteor-pg: diff.copied should be null as each record must have a unique _id');
       };
 
       // Add / Change
@@ -64,7 +74,7 @@ function live_select(sub, collection, query, params, triggers) {
           // Get _id
 
           var _id = added._id;
-          if(!_id) throw new Meteor.Error("Each record must have an _id field");
+          if(!_id) throw new Meteor.Error('meteor-pg: each record must have an _id field');
 
           // Create copy of the record minus technical fields
 
@@ -95,7 +105,7 @@ function live_select(sub, collection, query, params, triggers) {
           // Get _id
 
           var _id = oldIds[removed._index - 1];
-          if(!_id) throw new Meteor.Error("Cannot remove a record we didn't see before");
+          if(!_id) throw new Meteor.Error('meteor-pg: can\'t remove a record we didn\'t see before');
 
           // Skip if it's still in our dataset
 

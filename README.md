@@ -163,7 +163,6 @@ yet. Any ideas?
 * Read settings from xxx.pg.json file for default PG_URL
 * Better default channel name
 * Implement observe changes
-* Show proper error on LivePg connection error, may need LivePg change
 
 # Reporting Bugs / Issues
 I'll try to fix any issues that may come up. Try to figure out if the issue
