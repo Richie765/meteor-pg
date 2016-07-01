@@ -30,7 +30,7 @@ var db = pgp(PG_URL);
 
 // PgSelect function
 
-function PgSelect(publishThis, collection, query, params, triggers) {
+function select(publishThis, collection, query, params, triggers) {
   var initial = true;
   var oldIds = [];
 
@@ -128,35 +128,7 @@ function PgSelect(publishThis, collection, query, params, triggers) {
 
 // Exports
 
-exports.PgSelect = PgSelect;
-exports.db = db;
-
-/*
-
-How to do it
-
-* Keep a hash 'mapping', key is _index, value is _id
-
-event: moved
-*
-
-event: removed + added (done)
-* Match removed and added
-* Get _id from mapping
-* Change collection
-* Check for anything remaining
-
-event: added (done)
-* check for existing mapping
-* Get random _id
-* mapping{_index} = _id
-* call this.added with _id and record
-
-event: removed
-*
-
-event: copied
-
-
-
-*/
+module.exports = {
+  select: select,
+  db: db,
+};

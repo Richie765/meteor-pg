@@ -1,5 +1,6 @@
+import { Meteor } from 'meteor/meteor';
 // import { db } from 'meteor-pg-live';
-import { db } from '../imports/pg-live';
+import mpg from '../imports/pg-live';
 
 Meteor.methods({
   'incScore': function(id, amount){
@@ -17,6 +18,6 @@ Meteor.methods({
       WHERE id = $2
     `;
 
-    Promise.await(db.any(sql, [ amount, id ]));
+    Promise.await(mpg.db.any(sql, [ amount, id ]));
   }
 });
