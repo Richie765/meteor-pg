@@ -57,7 +57,7 @@ For more details see [the leaderboard example README](https://github.com/richie7
 
 The directory [examples/pg-live-select](https://github.com/richie765/meteor-pg-live/examples/pg-live-select) contains the example from [numtel/pg-live-select](https://github.com/numtel/pg-live-select). It is included to test / reverse engineer its usage.
 
-# Usage
+# Usage Example
 
 ## Publish / Subscribe (SELECT queries)
 
@@ -65,7 +65,7 @@ The directory [examples/pg-live-select](https://github.com/richie765/meteor-pg-l
 
 // Server side
 
-import { PgSelect } from 'meteor-pg-live';
+import mpg from 'meteor-pg-live';
 
 Meteor.publish('allPlayers', function() {
   // You must supply an _id which uniquely identifies each row returned
@@ -78,7 +78,11 @@ Meteor.publish('allPlayers', function() {
     ORDER BY score DESC
   `;
 
-  PgSelect(this, 'players', sql);
+  // The first parameter is the name of the client-side collection.
+  // The remaining parameters are identical to pg-live-select
+  // See: https://github.com/numtel/pg-live-select#livepgprototypeselectquery-params-triggers
+
+  mpg.select('players', sql);
 });
 
 // Client side
@@ -103,7 +107,7 @@ Template.leaderboard.helpers({
 
 // Server side
 
-import { db } from 'meteor-pg-live';
+import mpg from 'meteor-pg-live';
 
 Meteor.methods({
   'incScore': function(id, amount){
@@ -113,8 +117,12 @@ Meteor.methods({
       WHERE id = $2
     `;
 
-    // Use await to run the promise synchroniously
-    Promise.await(db.any(sql, [ amount, id ]));
+    // mpg.db is a database object of pg-promise
+    // See: https://github.com/vitaly-t/pg-promise
+
+    // Use await to run the promise synchronously
+
+    Promise.await(mpg.db.any(sql, [ amount, id ]));
   }
 });
 
@@ -151,19 +159,16 @@ Latency compensation works (client side stub methods), but there is some
 subscription aren't synced yet to the client. I don't know how to solve this
 yet. Any ideas?
 
-There is currently no way to observe a query/publication on the server side.
-Any suggestions are welcome.
-
 # Todo
 * Read settings from xxx.pg.json file for default PG_URL
+* Better default channel name
+* Implement observe changes
+* Show proper error on LivePg connection error, may need LivePg change
 
 # Reporting Bugs / Issues
 I'll try to fix any issues that may come up. Try to figure out if the issue
 is with this module, or with [numtel/pg-live-select](https://github.com/numtel/pg-live-select),
 and file an issue at the appropriate place.
-
-Pull-requests, particularly regarding the known issues mentioned mentioned above,
-are welcome.
 
 # Acknowledgements
 * Creating this module would not have been possible without Ben Green's

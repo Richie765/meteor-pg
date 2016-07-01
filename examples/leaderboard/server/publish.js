@@ -5,7 +5,7 @@ import mpg from '../imports/pg-live';
 Meteor.publish('allPlayers', function() {
   let sql = 'SELECT id AS _id, * FROM players ORDER BY score DESC';
 
-  mpg.select(this, 'players', sql);
+  return mpg.select('players', sql);
 });
 
 
@@ -15,7 +15,7 @@ Meteor.publish('playerScore', function(name) {
 
   let sql = 'SELECT id as _id, name, score FROM players WHERE name = $1';
 
-  mpg.select(this, 'playerScore', sql, [ name ],
+  return mpg.select('playerScore', sql, [ name ],
     {
       'players': function(row) {
         return row.name === name;

@@ -28,9 +28,9 @@ process.on('SIGINT', closeAndExit);
 
 var db = pgp(PG_URL);
 
-// PgSelect function
+// select function
 
-function select(publishThis, collection, query, params, triggers) {
+function live_select(sub, collection, query, params, triggers) {
   var initial = true;
   var oldIds = [];
 
@@ -78,11 +78,11 @@ function select(publishThis, collection, query, params, triggers) {
           var index = oldIds.findIndex(newId => newId === _id);
 
           if(index >= 0) {
-            publishThis.changed(collection, _id, copy);
+            sub.changed(collection, _id, copy);
             // console.log("Changed", collection, _id, copy);
           }
           else {
-            publishThis.added(collection, _id, copy);
+            sub.added(collection, _id, copy);
             // console.log("Added", collection, _id, copy);
           }
         });
@@ -102,7 +102,7 @@ function select(publishThis, collection, query, params, triggers) {
           var index = newIds.findIndex(newId => newId === _id);
 
           if(index === -1) {
-            publishThis.removed(collection, _id);
+            sub.removed(collection, _id);
             // console.log("Removed", collection, _id);
           }
         });
@@ -115,15 +115,29 @@ function select(publishThis, collection, query, params, triggers) {
       // Issue ready if needed
 
       if(initial) {
-        publishThis.ready();
+        sub.ready();
         initial = false;
       }
     });
 
-  publishThis.onStop(function() {
+  sub.onStop(function() {
     // console.log("Subscription was stopped");
     query.stop();
   });
+}
+
+function select(collection, query, params, triggers) {
+  return {
+    _publishCursor: function(sub) {
+      live_select(sub, collection, query, params, triggers);
+    },
+
+    observeChanges: function(callbacks) {
+      console.log("Not implemented yet");
+      // console.log("observeChanges called");
+      // console.log(callbacks);
+    },
+  };
 }
 
 // Exports
@@ -132,3 +146,46 @@ module.exports = {
   select: select,
   db: db,
 };
+
+
+/*
+
+There seem to be 2 types of _publishCursor
+
+1.
+https://github.com/meteor/meteor/blob/master/packages/mongo/collection.js#L343
+Mongo.Collection._publishCursor = function (cursor, sub, collection)
+
+2.
+https://github.com/meteor/meteor/blob/master/packages/ddp-server/livedata_server.js#L1068
+_publishCursor(subscription);
+
+It seems the second one is what we need
+
+
+*/
+
+/*
+_publishCursor = function (cursor, sub, collection) {
+  var observeHandle = cursor.observeChanges({
+    added: function (id, fields) {
+      sub.added(collection, id, fields);
+    },
+    changed: function (id, fields) {
+      sub.changed(collection, id, fields);
+    },
+    removed: function (id) {
+      sub.removed(collection, id);
+    }
+  });
+
+  // We don't call sub.ready() here: it gets called in livedata_server, after
+  // possibly calling _publishCursor on multiple returned cursors.
+
+  // register stop callback (expects lambda w/ no args).
+  sub.onStop(function () {observeHandle.stop();});
+
+  // return the observeHandle in case it needs to be stopped early
+  return observeHandle;
+};
+*/
