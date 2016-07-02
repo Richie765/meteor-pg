@@ -129,7 +129,7 @@ Template.leaderboard.helpers({
 
 ## Methods (INSERT, UPDATE queries)
 You can use mpg methods: query, many, one, none, any, oneOrNone, manyOrNone in your
-Meteor methods for your INSERT and SELECT statements. These methods take the
+Meteor methods for your INSERT and UPDATE statements. These methods take the
 same parameters as the methods of [pg-promise](https://github.com/vitaly-t/pg-promise).
 The difference is that these are synchronous and don't return a promise.
 So you can use the return value-directly.
