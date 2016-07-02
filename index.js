@@ -41,11 +41,11 @@ process.on('SIGINT', closeAndExit);
 
 // select function
 
-function live_select(sub, collection, query, params, triggers) {
+function live_select(sub, collection, ...param) {
   let initial = true;
   let oldIds = [];
 
-  let handle = liveDb.select(query, params, triggers)
+  let handle = liveDb.select(...param)
     .on('update', function(diff, data) {
       // console.log('diff', diff);
       // console.log('data', data);
@@ -137,10 +137,10 @@ function live_select(sub, collection, query, params, triggers) {
   });
 }
 
-function select(collection, query, params, triggers) {
+function select(...param) {
   return {
     _publishCursor: function(sub) {
-      live_select(sub, collection, query, params, triggers);
+      live_select(sub, ...param);
     },
 
     observeChanges: function(callbacks) {
@@ -155,9 +155,20 @@ function select(collection, query, params, triggers) {
 
 module.exports = {
   select: select,
-  db: db,
-};
+  live_select: live_select,
 
+  db: db,
+
+  // await all query functions
+
+  query(...param) { return Promise.await(db.query(...param)) },
+  many(...param) { return Promise.await(db.many(...param)) },
+  one(...param) { return Promise.await(db.one(...param)) },
+  none(...param) { return Promise.await(db.none(...param)) },
+  any(...param) { return Promise.await(db.any(...param)) },
+  oneOrNone(...param) { return Promise.await(db.oneOrNone(...param)) },
+  manyOrNone(...param) { return Promise.await(db.manyOrNone(...param)) },
+};
 
 /*
 

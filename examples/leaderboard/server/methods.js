@@ -18,6 +18,6 @@ Meteor.methods({
       WHERE id = $2
     `;
 
-    Promise.await(mpg.db.any(sql, [ amount, id ]));
+    mpg.none(sql, [ amount, id ]);
   }
 });
