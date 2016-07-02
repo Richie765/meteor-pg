@@ -65,12 +65,33 @@ meteor npm install
 meteor
 ```
 
-For more details see [the leaderboard example README](https://github.com/richie765/meteor-pg-live/examples/leaderboard/).
+For more details see [the leaderboard example README](https://github.com/Richie765/meteor-pg-live/tree/master/examples/leaderboard).
 
-The directory [examples/pg-live-select](https://github.com/richie765/meteor-pg-live/examples/pg-live-select) contains the example from [numtel/pg-live-select](https://github.com/numtel/pg-live-select). It is included to test / reverse engineer its usage.
+The example in [examples/pg-live-select](https://github.com/Richie765/meteor-pg-live/tree/master/examples/pg-live-select) is based on the example of [numtel/pg-live-select](https://github.com/numtel/pg-live-select). It is included here to test / reverse engineer its usage.
 
 # Usage Example
 ## Publish / Subscribe (SELECT queries)
+Only use this for read-only SELECT queries that you want to be reactive.
+
+Your PostgreSQL query must always return an \_id field which uniquely identifies
+each row returned. For simple queries, this could be just an alias to the PK.
+
+For multi-table queries, this could be a combination of different PK's, eg:
+
+```sql
+SELECT CONCAT(userid, '-', taskid) AS \_id, * FROM user, task;
+```
+
+This does not mean you have to include the PK's of all the tables involved.
+You just need to uniquely identify each row returned.
+
+```javascript
+mpg.select(collection, query, [params], [triggers])
+```
+
+collection: The name of the collection on the client-side.
+
+query, params, triggers: see [pg-live-select](https://github.com/numtel/pg-live-select#livepgprototypeselectquery-params-triggers).
 
 ```javascript
 // Server side
@@ -78,20 +99,11 @@ The directory [examples/pg-live-select](https://github.com/richie765/meteor-pg-l
 import mpg from 'meteor-pg-live';
 
 Meteor.publish('allPlayers', function() {
-  // You must supply an _id which uniquely identifies each row returned
-  // If you need to specify multiple id's with joined queries, use concat:
-  // SELECT CONCAT(userid, '-', taskid) AS _id FROM user, task;
-
   let sql = `
     SELECT id AS _id, *
     FROM players
     ORDER BY score DESC
   `;
-
-  // The first parameter is the name of the client-side collection.
-  // The remaining parameters are identical to pg-live-select.
-  // See: https://github.com/numtel/pg-live-select#livepgprototypeselectquery-params-triggers
-  // Only use this for SELECT queries.
 
   return mpg.select('players', sql);
 
@@ -116,6 +128,17 @@ Template.leaderboard.helpers({
 ```
 
 ## Methods (INSERT, UPDATE queries)
+You can use mpg methods: query, many, one, none, any, oneOrNone, manyOrNone in your
+Meteor methods for your INSERT and SELECT statements. These methods take the
+same parameters as the methods of [pg-promise](https://github.com/vitaly-t/pg-promise).
+The difference is that these are synchronous and don't return a promise.
+So you can use the return value-directly.
+
+Use those methods for statements that modify the database, or for select queries
+that don't need to be reactive.
+
+If you need access to pg-promise's db object directly, this is available as
+'mpg.db'.
 
 ```javascript
 // Server side
@@ -130,19 +153,7 @@ Meteor.methods({
       WHERE id = $2
     `;
 
-
-    // You can use mpg methods: query, many, one, none, any, oneOrNone, manyOrNone
-    // They take the same parameters as the methods of pg-promise
-    // See: https://github.com/vitaly-t/pg-promise
-    // The difference is that these are synchronous and don't return a promise.
-    // You can use the return value-directly.
-    // Use this for queries that modify the database, or select queries that
-    // don't need to be reactive.
-
-    mpg.any(sql, [ amount, id ]);
-
-    // mpg.db is a database object of pg-promise
-    // You can use this directly if you need to.
+    mpg.none(sql, [ amount, id ]);
   }
 });
 
@@ -163,17 +174,14 @@ Template.leaderboard.events({
 });
 ```
 
-# Notes / known issues
-NOTE: Every query must have a \_id field that must be unique for the resultset.
-For simple queries, this can be the PK. For multi-table queries, it can be
-the concatenation of multiple PK's. Note, the \_id just has to uniquely
-identify the row so you don't always have to include the PK's of all the
-tables involved.
-
-BUG: Latency compensation works (client side stub methods), but there is some
+# Known issues
+Latency compensation works (client side stub methods), but there is some
 'flicker'. It seems like, when the table is updated, the changes to the
 subscription aren't synced yet to the client. I'm still looking into a
 solution for this.
+
+The initial resultset may also give some flicker. The alternative method,
+as described above in the Usage Examples, may work better for now.
 
 # Todo
 * Read settings from xxx.pg.json file for default PG_URL
