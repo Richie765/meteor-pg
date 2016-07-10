@@ -161,13 +161,22 @@ module.exports = {
 
   // await all query functions
 
+  connect(...param) { return Promise.await(db.connect(...param)) },
   query(...param) { return Promise.await(db.query(...param)) },
-  many(...param) { return Promise.await(db.many(...param)) },
-  one(...param) { return Promise.await(db.one(...param)) },
   none(...param) { return Promise.await(db.none(...param)) },
-  any(...param) { return Promise.await(db.any(...param)) },
+  one(...param) { return Promise.await(db.one(...param)) },
+  many(...param) { return Promise.await(db.many(...param)) },
   oneOrNone(...param) { return Promise.await(db.oneOrNone(...param)) },
   manyOrNone(...param) { return Promise.await(db.manyOrNone(...param)) },
+  any(...param) { return Promise.await(db.any(...param)) },
+  result(...param) { return Promise.await(db.result(...param)) },
+  stream(...param) { return Promise.await(db.stream(...param)) },
+  func(...param) { return Promise.await(db.func(...param)) },
+  proc(...param) { return Promise.await(db.proc(...param)) },
+  map(...param) { return Promise.await(db.map(...param)) },
+  each(...param) { return Promise.await(db.each(...param)) },
+  task(...param) { return Promise.await(db.task(...param)) },
+  tx(...param) { return Promise.await(db.tx(...param)) },
 };
 
 /*
