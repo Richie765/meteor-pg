@@ -129,6 +129,9 @@ function live_select(sub, collection, ...param) {
         sub.ready();
         initial = false;
       }
+    })
+    .on('error', function(err) {
+      sub.error(err);
     });
 
   sub.onStop(function() {

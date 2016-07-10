@@ -184,6 +184,7 @@ The initial resultset may also give some flicker. The alternative method,
 as described above in the Usage Examples, may work better for now.
 
 # Todo
+* process.exit on pg connection error, checken
 * Read settings from xxx.pg.json file for default PG_URL
 * Better default channel name
 * Implement observe changes
