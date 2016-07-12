@@ -1,4 +1,6 @@
 # Introduction
+BUG, see below.
+
 This module allows you to use PostgreSQL reactively with Meteor as seemless
 as possible. It uses [numtel/pg-live-select](https://github.com/numtel/pg-live-select)
 behind the scenes to do it's magic.
@@ -105,10 +107,11 @@ Meteor.publish('allPlayers', function() {
     ORDER BY score DESC
   `;
 
-  return mpg.select('players', sql);
+  // Standard method, works but signals subscription ready too soon
+  // return mpg.select('players', sql);
 
-  // Alternative method, may produce less 'flicker' on the initial resultset
-  // mpg.live_select(this, 'players', sql);
+  // Alternative method, produces less flicker on the initial resultset
+  mpg.live_select(this, 'players', sql);
 });
 
 // Client side
@@ -175,6 +178,9 @@ Template.leaderboard.events({
 ```
 
 # Known issues
+BUG, syncing the changes to the client doesn't work as it should.
+To fix this, a customized 'pg-live-select' is needed.
+
 Latency compensation works (client side stub methods), but there is some
 'flicker'. It seems like, when the table is updated, the changes to the
 subscription aren't synced yet to the client. I'm still looking into a
@@ -184,10 +190,12 @@ The initial resultset may also give some flicker. The alternative method,
 as described above in the Usage Examples, may work better for now.
 
 # Todo
+* Fix sync bug
+* Make initial resultset work better
+* Implement observe changes
 * process.exit on pg connection error, checken
 * Read settings from xxx.pg.json file for default PG_URL
 * Better default channel name
-* Implement observe changes
 
 # Acknowledgements
 * Creating this module would not have been possible without Ben Green's
