@@ -86,7 +86,7 @@ function live_select(sub, collection, ...param) {
 
           // Use 'changed' if it existed before, othewise 'added'
 
-          let index = oldIds.findIndex(newId => newId === _id);
+          let index = initial ? -1 : oldIds.findIndex(newId => newId === _id);
 
           if(index >= 0) {
             sub.changed(collection, _id, copy);
@@ -94,7 +94,7 @@ function live_select(sub, collection, ...param) {
           }
           else {
             sub.added(collection, _id, copy);
-            // console.log("Added", collection, _id, copy);
+            // if(!initial) console.log("Added", collection, _id, copy);
           }
         });
       }
@@ -131,11 +131,12 @@ function live_select(sub, collection, ...param) {
       }
     })
     .on('error', function(err) {
+      // console.log("Error", err);
       sub.error(err);
     });
 
   sub.onStop(function() {
-    // console.log("Subscription was stopped");
+    // console.log("Stopped");
     handle.stop();
   });
 }
