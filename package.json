@@ -5,10 +5,9 @@
   "main": "lib/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "babel --presets es2015 -d lib/ src/",
+    "build": "pwd && ls && babel --presets es2015 -d lib/ src/",
     "build-watch": "babel --watch --presets es2015 -d lib/ src/",
-    "prepublish": "npm run build",
-    "postinstall": "npm run build"
+    "prepublish": "npm run build"
   },
   "keywords": [
     "meteor",
