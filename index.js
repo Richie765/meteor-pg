@@ -50,78 +50,35 @@ function live_select(sub, collection, ...param) {
       // console.log('diff', diff);
       // console.log('data', data);
 
-      // Get id's and check uniqueness
+      // Leave if nothing changed
 
-      let newIds = data.map(row => row._id);
-
-      let check = {};
-      newIds.forEach(id => {
-        if(id === null || id === undefined) throw new Meteor.Error('meteor-pg: record without _id');
-        if(check[id]) throw new Meteor.Error('meteor-pg: duplicate _id in resultset');
-
-        check[id] = 1;
-      });
-
-      // Copied
-
-      if(diff.copied) {
-        throw new Meteor.Error('meteor-pg: diff.copied should be null as each record must have a unique _id');
-      };
-
-      // Add / Change
-
-      if(diff.added !== null) {
-        diff.added.forEach(function(added) {
-          // Get _id
-
-          let _id = added._id;
-          if(!_id) throw new Meteor.Error('meteor-pg: each record must have an _id field');
-
-          // Create copy of the record minus technical fields
-
-          let copy = _.clone(added);
-          delete copy._index;
-          delete copy._hash;
-          delete copy._id;
-
-          // Use 'changed' if it existed before, othewise 'added'
-
-          let index = initial ? -1 : oldIds.findIndex(newId => newId === _id);
-
-          if(index >= 0) {
-            sub.changed(collection, _id, copy);
-            // console.log("Changed", collection, _id, copy);
-          }
-          else {
-            sub.added(collection, _id, copy);
-            // if(!initial) console.log("Added", collection, _id, copy);
-          }
-        });
-      }
+      if(!diff) return;
 
       // Remove
 
       if(diff.removed) {
-        diff.removed.forEach(function(removed) {
-          // Get _id
-
-          let _id = oldIds[removed._index - 1];
-          if(!_id) throw new Meteor.Error('meteor-pg: can\'t remove a record we didn\'t see before');
-
-          // Skip if it's still in our dataset
-
-          let index = newIds.findIndex(newId => newId === _id);
-
-          if(index === -1) {
-            sub.removed(collection, _id);
-            // console.log("Removed", collection, _id);
-          }
+        diff.removed.forEach(function(_id) {
+          sub.removed(collection, _id);
         });
       };
 
-      // Store current ids for next time
+      // Changed
 
-      oldIds = newIds;
+      if(diff.changed) {
+        diff.changed.forEach(function(changed) {
+          let _id = changed._id;
+          sub.changed(collection, _id, changed);
+        });
+      }
+
+      // Added
+
+      if(diff.added) {
+        diff.added.forEach(function(added) {
+          let _id = added._id;
+          sub.added(collection, _id, added);
+        });
+      }
 
       // Issue ready if needed
 
