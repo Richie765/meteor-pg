@@ -69,8 +69,6 @@ meteor
 
 For more details see [the leaderboard example README](https://github.com/Richie765/meteor-pg-live/tree/master/examples/leaderboard).
 
-The example in [examples/pg-live-select](https://github.com/Richie765/meteor-pg-live/tree/master/examples/pg-live-select) is based on the example of [numtel/pg-live-select](https://github.com/numtel/pg-live-select). It is included here to test / reverse engineer its usage.
-
 # Usage Example
 ## Publish / Subscribe (SELECT queries)
 Only use this for read-only SELECT queries that you want to be reactive.
