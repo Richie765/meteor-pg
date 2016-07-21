@@ -25,12 +25,6 @@ meteor npm install richie765/meteor-pg-live --save
 # meteor npm install meteor-pg-live --save
 ```
 
-You'll need Meteor's 'ecmascript' package, so install it if you don't have it yet
-
-```bash
-meteor add ecmascript
-```
-
 If you want to embed a PostgreSQL server into your application, you can use
 [numtel/meteor-pg-server](https://github.com/numtel/meteor-pg-server). To
 install:
