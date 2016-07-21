@@ -1,15 +1,13 @@
 # Introduction
-BUG, see below.
-
 This module allows you to use PostgreSQL reactively with Meteor as seemless
-as possible. It uses [numtel/pg-live-select](https://github.com/numtel/pg-live-select)
+as possible. It uses [richie765/pg-live-select](https://github.com/richie765/pg-live-select)
 behind the scenes to do it's magic.
 
 This module provides a method to publish PostgreSQL queries on the server. The query
 result will be available in a Minimongo collection, reactively, on the client-side.
 The client side collection is read-only and can you can use 'find' on it as usual.
 
-There are also methods for write statements (UPDATE, INSERT) that you can call from
+There are also methods for data modification statements (UPDATE, INSERT) that you can call from
 your server-side methods.
 
 This module is still in development. Generally it should work fine but there
@@ -20,30 +18,17 @@ are some issues I'm still working on. The API could change.
 ```bash
 # currently meteor-pg-live is available on github only
 meteor npm install richie765/meteor-pg-live --save
-
-# In the future this should work as well
-# meteor npm install meteor-pg-live --save
-```
-
-If you want to embed a PostgreSQL server into your application, you can use
-[numtel/meteor-pg-server](https://github.com/numtel/meteor-pg-server). To
-install:
-
-```bash
-meteor add numtel:pg-server
 ```
 
 # Configuration
-pg-live-select will by default attempt to connect to the 'numtel:pg-server'
-embedded in your application (see above). If you want to connect to your own
-PostgreSQL server, you can set the PG_URL environment variable like this:
+There are two environment variables used to configure your database connection.
 
 ```bash
 export PG_SQL=postgres://user:password@host:port/db
 meteor
 ```
 
-To set the LivePg channel (see [numtel/pg-live-select](https://github.com/numtel/pg-live-select))
+To set the LivePg channel (see [richie765/pg-live-select](https://github.com/richie765/pg-live-select))
 use the PG_CHANNEL environment variable:
 
 ```bash
@@ -72,7 +57,7 @@ mpg.select(collection, query, [params], [triggers])
 
 collection: The name of the collection on the client-side.
 
-query, params, triggers: see [pg-live-select](https://github.com/numtel/pg-live-select#livepgprototypeselectquery-params-triggers).
+query, params, triggers: see [richie765/pg-live-select](https://github.com/richie765/pg-live-select#livepgprototypeselectquery-params-triggers).
 
 ```javascript
 // Server side
@@ -87,10 +72,10 @@ Meteor.publish('allPlayers', function() {
   `;
 
   // Standard method, works but signals subscription ready too soon
-  // return mpg.select('players', sql);
+  // return mpg.select('players', sql, function(trig) { return true });
 
   // Alternative method, produces less flicker on the initial resultset
-  mpg.live_select(this, 'players', sql);
+  mpg.live_select(this, 'players', sql, function(trig) { return true });
 });
 
 // Client side
@@ -157,26 +142,16 @@ Template.leaderboard.events({
 ```
 
 # Known issues
-BUG, syncing the changes to the client doesn't work as it should.
-To fix this, a customized 'pg-live-select' is needed.
-
 Latency compensation works (client side stub methods), but there is some
 'flicker'. It seems like, when the table is updated, the changes to the
 subscription aren't synced yet to the client. I'm still looking into a
 solution for this.
 
 The initial resultset may also give some flicker. The alternative method,
-as described above in the Usage Examples, may work better for now.
+as described above in the Usage Examples, works better for now.
 
 # Todo
-* Fix sync bug
 * Make initial resultset work better
 * Implement observe changes
 * process.exit on pg connection error, checken
-* Read settings from xxx.pg.json file for default PG_URL
 * Better default channel name
-
-# Acknowledgements
-* Creating this module would not have been possible without Ben Green's
-[numtel/pg-live-select](https://github.com/numtel/pg-live-select) module.
-Thanks for creating it!
