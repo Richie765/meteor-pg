@@ -56,19 +56,6 @@ use the PG_CHANNEL environment variable:
 export PG_CHANNEL=your_channel
 ```
 
-# Running the leaderboard example
-The leaderboard example is already configured to use the embedded
-PostgreSQL server. You can run it using the following commands:
-
-```bash
-git clone https://github.com/richie765/meteor-pg-live
-cd meteor-pg-live/examples/leaderboard
-meteor npm install
-meteor
-```
-
-For more details see [the leaderboard example README](https://github.com/Richie765/meteor-pg-live/tree/master/examples/leaderboard).
-
 # Usage Example
 ## Publish / Subscribe (SELECT queries)
 Only use this for read-only SELECT queries that you want to be reactive.
