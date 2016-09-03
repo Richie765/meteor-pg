@@ -119,6 +119,7 @@ module.exports = {
   live_select: live_select,
 
   db: db,
+  pgp: pgp,
 
   // await all query functions
 
