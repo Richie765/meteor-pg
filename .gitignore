@@ -1,5 +1,2 @@
-*.*~
-*.swp
-*.swo
 node_modules
-lib
+dist
