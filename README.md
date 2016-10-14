@@ -1,7 +1,6 @@
-# Introduction
+# @richie765/meteor-pg
 This module allows you to use PostgreSQL reactively with Meteor as seemless
-as possible. It uses [richie765/pg-live-select](https://github.com/richie765/pg-live-select)
-behind the scenes to do it's magic.
+as possible.
 
 This module provides a method to publish PostgreSQL queries on the server. The query
 result will be available in a Minimongo collection, reactively, on the client-side.
@@ -14,10 +13,8 @@ This module is still in development. Generally it should work fine but there
 are some issues I'm still working on. The API could change.
 
 # Installation
-
 ```bash
-# currently meteor-pg-live is available on github only
-meteor npm install richie765/meteor-pg-live --save
+meteor npm install @richie765/meteor-pg --save
 ```
 
 # Configuration
@@ -25,15 +22,12 @@ There are two environment variables used to configure your database connection.
 
 ```bash
 export PG_SQL=postgres://user:password@host:port/db
+export PG_CHANNEL=your_channel
 meteor
 ```
 
-To set the LivePg channel (see [richie765/pg-live-select](https://github.com/richie765/pg-live-select))
-use the PG_CHANNEL environment variable:
-
-```bash
-export PG_CHANNEL=your_channel
-```
+The channel is used for LISTEN/NOTIFY on the PostgreSQL database and cannot
+be used by more than one application on the same database.
 
 # Usage Example
 ## Publish / Subscribe (SELECT queries)
@@ -62,7 +56,7 @@ query, params, triggers: see [richie765/pg-live-select](https://github.com/richi
 ```javascript
 // Server side
 
-import mpg from 'meteor-pg-live';
+import mpg from '@richie765/meteor-pg';
 
 Meteor.publish('allPlayers', function() {
   let sql = `
@@ -110,7 +104,7 @@ If you need access to pg-promise's db object directly, this is available as
 ```javascript
 // Server side
 
-import mpg from 'meteor-pg-live';
+import mpg from '@richie765/meteor-pg';
 
 Meteor.methods({
   'incScore': function(id, amount){
