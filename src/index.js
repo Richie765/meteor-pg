@@ -1,107 +1,112 @@
-import LivePg from 'pg-live-select';
 import pgPromise from 'pg-promise';
+import PgTableObserver from '../../pg-table-observer/';
+import PgQueryObserver from '../../pg-query-observer/';
 
-// Update this connection string to match your configuration!
-// When using an externally configured PostgreSQL server, the default port
-// is 5432.
+// Initialization
 
-// TODO Use environment variables and proper defaults
+var pgp;
+var db;
+var query_observer;
 
-let PG_URL = process.env.PG_URL ? process.env.PG_URL : 'postgres://' + process.env.USER + ':numtel@127.0.0.1:5438/postgres';
-let PG_CHANNEL = process.env.PG_CHANNEL ? process.env.PG_CHANNEL : 'default_channel';
+async function init(connection, channel) {
+  if(!connection) {
+    connection = process.env.PG_URL ? process.env.PG_URL : 'postgres://localhost/postgres';
+  }
 
-// pg-promise connection
+  if(!channel) {
+    let channel = process.env.PG_CHANNEL ? process.env.PG_CHANNEL : 'default_channel';
+  }
 
-let pgp = pgPromise({});
-let db = pgp(PG_URL);
+  // pg-promise connection
 
-try {
-  console.log('meteor-pg: connecting to', PG_URL);
-  Promise.await(db.connect());
-  console.log('meteor-pg: success');
+  pgp = pgPromise({});
+
+  try {
+    db = await pgp(connection);
+  }
+  catch(err) {
+    console.error('meteor-pg: failed to connect to', connection);
+    throw err;
+  }
+
+  // PgQueryObserver
+
+  query_observer = new PgQueryObserver(db, channel);
+
+  // Automatic cleanup
+
+  async function cleanupAndExit() {
+    // NOTE use Promise.await?
+    await query_observer.cleanup();
+    await pgp.end();
+    process.exit();
+  }
+
+  process.on('SIGTERM', cleanupAndExit);
+  process.on('SIGINT', cleanupAndExit);
 }
-catch(err) {
-  console.error("meteor-pg: failed");
-  throw err;
-}
 
-// liveDb connection
-
-let liveDb = new LivePg(PG_URL, PG_CHANNEL);
-
-let closeAndExit = function() {
-  // Cleanup removes triggers and functions used to transmit updates
-  liveDb.cleanup(process.exit);
-};
-
-// Close connections on hot code push
-process.on('SIGTERM', closeAndExit);
-// Close connections on exit (ctrl + c)
-process.on('SIGINT', closeAndExit);
+init(); // For now just init automatically
 
 // select function
 
-function live_select(sub, collection, ...param) {
-  let initial = true;
-  let oldIds = [];
+function live_select(sub, collection, query, params, triggers) {
+  if(!query_observer) throw new Error('Query observer not initialized yet');
 
-  let handle = liveDb.select(...param)
-    .on('update', function(diff, data) {
-      // console.log('diff', diff);
-      // console.log('data', data);
-
-      // Leave if nothing changed
-
-      if(!diff) return;
-
-      // Remove
+  try {
+    let handle = Promise.await(query_observer.notify(query, params, triggers, diff => {
+      // console.log(diff);
 
       if(diff.removed) {
-        diff.removed.forEach(function(_id) {
+        diff.removed.forEach(_id => {
           sub.removed(collection, _id);
         });
-      };
-
-      // Changed
+      }
 
       if(diff.changed) {
-        diff.changed.forEach(function(changed) {
-          let _id = changed._id;
+        diff.changed.forEach(changed => {
+          let { _id } = changed;
           sub.changed(collection, _id, changed);
         });
       }
 
-      // Added
-
       if(diff.added) {
-        diff.added.forEach(function(added) {
-          let _id = added._id;
+        diff.added.forEach(added => {
+          let { _id } = added;
           sub.added(collection, _id, added);
         });
       }
+    }));
 
-      // Issue ready if needed
+    // Add initial rows
 
-      if(initial) {
-        sub.ready();
-        initial = false;
-      }
-    })
-    .on('error', function(err) {
-      // console.log("Error", err);
-      sub.error(err);
+    let rows = handle.getRows();
+
+    rows.forEach(added => {
+      let { _id } = added;
+      sub.added(collection, _id, added);
     });
 
-  sub.onStop(function() {
-    // console.log("Stopped");
-    handle.stop();
-  });
+    // onStop handler
+
+    sub.onStop(() => {
+      // console.log("Stopped");
+      handle.stop();
+    });
+  }
+  catch(err) {
+    // console.error(err);
+    sub.error(err);
+  }
 }
 
-function select(...param) {
+function select(collection, query, params, triggers) {
+  // Usage: (inside Publish function)
+  //  return mpg.select(collection, query, params, triggers)
+
   return {
     _publishCursor: function(sub) {
-      live_select(sub, ...param);
+      live_select(sub, collection, query, params, triggers);
     },
 
     observeChanges: function(callbacks) {
@@ -112,14 +117,10 @@ function select(...param) {
   };
 }
 
-// Exports
+// mpg object
 
-module.exports = {
-  select: select,
-  live_select: live_select,
-
-  db: db,
-  pgp: pgp,
+var mpg = {
+  pgp, db, query_observer, select,
 
   // await all query functions
 
@@ -141,44 +142,7 @@ module.exports = {
   tx(...param) { return Promise.await(db.tx(...param)) },
 };
 
-/*
+// Exports
 
-There seem to be 2 types of _publishCursor
-
-1.
-https://github.com/meteor/meteor/blob/master/packages/mongo/collection.js#L343
-Mongo.Collection._publishCursor = function (cursor, sub, collection)
-
-2.
-https://github.com/meteor/meteor/blob/master/packages/ddp-server/livedata_server.js#L1068
-_publishCursor(subscription);
-
-It seems the second one is what we need
-
-
-*/
-
-/*
-_publishCursor = function (cursor, sub, collection) {
-  var observeHandle = cursor.observeChanges({
-    added: function (id, fields) {
-      sub.added(collection, id, fields);
-    },
-    changed: function (id, fields) {
-      sub.changed(collection, id, fields);
-    },
-    removed: function (id) {
-      sub.removed(collection, id);
-    }
-  });
-
-  // We don't call sub.ready() here: it gets called in livedata_server, after
-  // possibly calling _publishCursor on multiple returned cursors.
-
-  // register stop callback (expects lambda w/ no args).
-  sub.onStop(function () {observeHandle.stop();});
-
-  // return the observeHandle in case it needs to be stopped early
-  return observeHandle;
-};
-*/
+export { mpg, pgp, db, query_observer, select };
+export default mpg;
