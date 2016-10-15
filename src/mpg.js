@@ -7,6 +7,7 @@ import PgQueryObserver from '../../pg-query-observer/';
 var pgp;
 var db;
 var query_observer;
+var table_observer;
 
 async function init(connection, channel) {
   if(!connection) {
@@ -32,6 +33,8 @@ async function init(connection, channel) {
   // PgQueryObserver
 
   query_observer = new PgQueryObserver(db, channel);
+
+  table_observer = query_observer.table_observer;
 
   // Automatic cleanup
 
@@ -120,7 +123,7 @@ function select(collection, query, params, triggers) {
 // mpg object
 
 var mpg = {
-  pgp, db, query_observer, select,
+  pgp, db, query_observer, table_observer, select,
 
   // await all query functions
 
@@ -144,5 +147,5 @@ var mpg = {
 
 // Exports
 
-export { mpg, pgp, db, query_observer, select };
+export { mpg, pgp, db, query_observer, table_observer, select };
 export default mpg;
