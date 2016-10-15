@@ -1,6 +1,7 @@
 import pgPromise from 'pg-promise';
-import PgTableObserver from '../../pg-table-observer/';
-import PgQueryObserver from '../../pg-query-observer/';
+
+import PgTableObserver from 'pg-table-observer';
+import PgQueryObserver from 'pg-query-observer';
 
 // Initialization
 
@@ -9,13 +10,13 @@ var db;
 var query_observer;
 var table_observer;
 
-async function init(connection, channel) {
+function init(connection, channel) {
   if(!connection) {
     connection = process.env.PG_URL ? process.env.PG_URL : 'postgres://localhost/postgres';
   }
 
   if(!channel) {
-    let channel = process.env.PG_CHANNEL ? process.env.PG_CHANNEL : 'default_channel';
+    channel = process.env.PG_CHANNEL ? process.env.PG_CHANNEL : 'default_channel';
   }
 
   // pg-promise connection
@@ -23,7 +24,7 @@ async function init(connection, channel) {
   pgp = pgPromise({});
 
   try {
-    db = await pgp(connection);
+    db = GLOBAL.Promise.await(pgp(connection));
   }
   catch(err) {
     console.error('meteor-pg: failed to connect to', connection);
@@ -39,9 +40,8 @@ async function init(connection, channel) {
   // Automatic cleanup
 
   async function cleanupAndExit() {
-    // NOTE use Promise.await?
     await query_observer.cleanup();
-    await pgp.end();
+    pgp.end();
     process.exit();
   }
 
@@ -57,7 +57,7 @@ function live_select(sub, collection, query, params, triggers) {
   if(!query_observer) throw new Error('Query observer not initialized yet');
 
   try {
-    let handle = Promise.await(query_observer.notify(query, params, triggers, diff => {
+    let handle = GLOBAL.Promise.await(query_observer.notify(query, params, triggers, diff => {
       // console.log(diff);
 
       if(diff.removed) {
@@ -127,22 +127,22 @@ var mpg = {
 
   // await all query functions
 
-  connect(...param) { return Promise.await(db.connect(...param)) },
-  query(...param) { return Promise.await(db.query(...param)) },
-  none(...param) { return Promise.await(db.none(...param)) },
-  one(...param) { return Promise.await(db.one(...param)) },
-  many(...param) { return Promise.await(db.many(...param)) },
-  oneOrNone(...param) { return Promise.await(db.oneOrNone(...param)) },
-  manyOrNone(...param) { return Promise.await(db.manyOrNone(...param)) },
-  any(...param) { return Promise.await(db.any(...param)) },
-  result(...param) { return Promise.await(db.result(...param)) },
-  stream(...param) { return Promise.await(db.stream(...param)) },
-  func(...param) { return Promise.await(db.func(...param)) },
-  proc(...param) { return Promise.await(db.proc(...param)) },
-  map(...param) { return Promise.await(db.map(...param)) },
-  each(...param) { return Promise.await(db.each(...param)) },
-  task(...param) { return Promise.await(db.task(...param)) },
-  tx(...param) { return Promise.await(db.tx(...param)) },
+  connect(...param) { return GLOBAL.Promise.await(db.connect(...param)) },
+  query(...param) { return GLOBAL.Promise.await(db.query(...param)) },
+  none(...param) { return GLOBAL.Promise.await(db.none(...param)) },
+  one(...param) { return GLOBAL.Promise.await(db.one(...param)) },
+  many(...param) { return GLOBAL.Promise.await(db.many(...param)) },
+  oneOrNone(...param) { return GLOBAL.Promise.await(db.oneOrNone(...param)) },
+  manyOrNone(...param) { return GLOBAL.Promise.await(db.manyOrNone(...param)) },
+  any(...param) { return GLOBAL.Promise.await(db.any(...param)) },
+  result(...param) { return GLOBAL.Promise.await(db.result(...param)) },
+  stream(...param) { return GLOBAL.Promise.await(db.stream(...param)) },
+  func(...param) { return GLOBAL.Promise.await(db.func(...param)) },
+  proc(...param) { return GLOBAL.Promise.await(db.proc(...param)) },
+  map(...param) { return GLOBAL.Promise.await(db.map(...param)) },
+  each(...param) { return GLOBAL.Promise.await(db.each(...param)) },
+  task(...param) { return GLOBAL.Promise.await(db.task(...param)) },
+  tx(...param) { return GLOBAL.Promise.await(db.tx(...param)) },
 };
 
 // Exports
