@@ -56,8 +56,10 @@ init(); // For now just init automatically
 function live_select(sub, collection, query, params, triggers) {
   if(!query_observer) throw new Error('Query observer not initialized yet');
 
+  let handle;
+
   try {
-    let handle = GLOBAL.Promise.await(query_observer.notify(query, params, triggers, diff => {
+    handle = GLOBAL.Promise.await(query_observer.notify(query, params, triggers, diff => {
       // console.log(diff);
 
       if(diff.removed) {
@@ -93,7 +95,7 @@ function live_select(sub, collection, query, params, triggers) {
     // onStop handler
 
     sub.onStop(() => {
-      // console.log("Stopped");
+      // console.log("Stopping", query);
       handle.stop();
     });
   }
@@ -101,6 +103,8 @@ function live_select(sub, collection, query, params, triggers) {
     // console.error(err);
     sub.error(err);
   }
+
+  return handle;
 }
 
 function select(collection, query, params, triggers) {
@@ -108,11 +112,17 @@ function select(collection, query, params, triggers) {
   //  return mpg.select(collection, query, params, triggers)
 
   return {
-    _publishCursor: function(sub) {
-      live_select(sub, collection, query, params, triggers);
+    _publishCursor(sub) {
+      this.handle = live_select(sub, collection, query, params, triggers);
     },
 
-    observeChanges: function(callbacks) {
+    refresh() {
+      if(this.handle) {
+        this.handle.refresh();
+      }
+    },
+
+    observeChanges(callbacks) {
       console.log("Not implemented yet");
       // console.log("observeChanges called");
       // console.log(callbacks);
