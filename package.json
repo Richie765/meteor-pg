@@ -1,14 +1,12 @@
 {
   "name": "@richie765/meteor-pg",
-  "version": "2.0.0-beta",
+  "version": "0.0.1",
   "description": "This module makes live PostgreSQL select queries work with the Meteor publish/subscribe mechanism. Relies heavily on the module numtel/pg-live-select.",
   "main": "dist/mpg-es6.js",
   "dependencies": {
-    "pg-live-select": "richie765/pg-live-select",
-    "pg-native": "^1.10.0",
     "pg-promise": "^5.0.3",
-    "babel-cli": "^6.11.4",
-    "babel-preset-es2015": "^6.9.0"
+    "pg-query-observer": "0.0.1",
+    "pg-table-observer": "0.0.2"
   },
   "devDependencies": {
     "babel-cli": "6.14.0",
