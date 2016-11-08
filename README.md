@@ -26,7 +26,7 @@ There are two environment variables used to configure your database connection.
 ```bash
 export PG_SQL=postgres://user:password@host:port/db
 export PG_CHANNEL=your_channel
-meteor
+meteor run
 ```
 
 The channel is used for LISTEN/NOTIFY on the PostgreSQL database and cannot
@@ -39,6 +39,8 @@ import '@richie765/meteor-pg';
 ```
 
 # Usage - publication
+Only use this for read-only SELECT queries that you want to be reactive. For non-reactive
+(SELECT) queries you can use a method.
 
 Within a publish function on the server:
 ```javascript
@@ -56,7 +58,8 @@ Parameter | Description
 ## Unique \_id field
 
 Your query must always return an \_id field which uniquely identifies
-each row returned. For simple queries, this could be just an alias to the PK.
+each row returned. This is needed so that the changed rows can be identified.
+For simple queries, this could just be an alias to the PK.
 
 For multi-table queries, this could be a combination of different PK's, eg:
 
@@ -84,10 +87,16 @@ Field | Description
 `row` | The row values, for UPDATE, the NEW row values
 `old` | For UPDATE, the OLD row values
 
-## Example
-Only use this for read-only SELECT queries that you want to be reactive. For non-reactive
-(SELECT) queries you can use a method.
+ES6 syntax makes it easy to write your trigger function, e.g.:
 
+```javascript
+function trigger({ table, row }) {
+  if(table === 'user' and row.name === 'name') return true;
+  if(table === 'task' and row.status === 'completed') return true;
+}
+```
+
+## Example - pubication
 ```javascript
 // Server side
 
@@ -127,14 +136,11 @@ Template.leaderboard.helpers({
 
 # Usage - methods
 
-The `mpg` object provides the following methods that you can call within your Meteor methods to execute SQL INSERT and UPDATE statements: `query`, `none`, `one`, `many`, `oneOrNone`, `manyOrNone`, `any`, `result`, `stream`, `func`, `proc`, `map`, `each`, `task`, `tx`.
+The `mpg` object provides the following methods that you can call within your Meteor methods to execute INSERT and UPDATE (and non-reactive SELECT) statements: `query`, `none`, `one`, `many`, `oneOrNone`, `manyOrNone`, `any`, `result`, `stream`, `func`, `proc`, `map`, `each`, `task`, `tx`.
 
 These methods take the same parameters as the methods of [pg-promise](https://github.com/vitaly-t/pg-promise).
 The difference is that these are called within a fiber using `Promise.await`, so they wait for the statement to be executed. You can
 use the return value directly, it is not a 'promise'.
-
-Use those methods for statements that modify the database, or for select queries
-that don't need to be reactive.
 
 ## Example
 
