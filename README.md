@@ -1,20 +1,23 @@
 # @richie765/meteor-pg
-This module allows you to use PostgreSQL reactively with Meteor as seemless
+This package allows you to use PostgreSQL reactively with Meteor as seamlessly
 as possible.
 
-This module provides a method to publish PostgreSQL queries on the server. The query
+It provides a method to publish PostgreSQL queries on the server. The query
 result will be available in a Minimongo collection, reactively, on the client-side.
-The client side collection is read-only and can you can use 'find' on it as usual.
+The collection can be used in the usual way.
 
-There are also methods for data modification statements (UPDATE, INSERT) that you can call from
-your server-side methods.
+Data modifications (UPDATE, INSERT) can only be made from the server side.
+There are methods available that you can call from your server-side methods.
 
-This module is still in development. Generally it should work fine but there
-are some issues I'm still working on. The API could change.
+It has been used in a small scale production environment quite successfully.
 
 # Installation
 ```bash
 meteor npm install @richie765/meteor-pg --save
+
+# also needed
+
+npm install babel-runtime --save
 ```
 
 # Configuration
@@ -29,7 +32,14 @@ meteor
 The channel is used for LISTEN/NOTIFY on the PostgreSQL database and cannot
 be used by more than one application on the same database.
 
+# Initialization
+On the server side, import the package early on to establish the database connection. Your `/server/main.js` file would be a good place to do this.
+```javascript
+import '@richie765/meteor-pg';
+```
+
 # Usage Example
+
 ## Publish / Subscribe (SELECT queries)
 Only use this for read-only SELECT queries that you want to be reactive.
 
@@ -134,18 +144,3 @@ Template.leaderboard.events({
   }
 });
 ```
-
-# Known issues
-Latency compensation works (client side stub methods), but there is some
-'flicker'. It seems like, when the table is updated, the changes to the
-subscription aren't synced yet to the client. I'm still looking into a
-solution for this.
-
-The initial resultset may also give some flicker. The alternative method,
-as described above in the Usage Examples, works better for now.
-
-# Todo
-* Make initial resultset work better
-* Implement observe changes
-* process.exit on pg connection error, checken
-* Better default channel name
