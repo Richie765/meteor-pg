@@ -56,12 +56,12 @@ This does not mean you have to include the PK's of all the tables involved.
 You just need to uniquely identify each row returned.
 
 ```javascript
-mpg.select(collection, query, [params], [triggers])
+mpg.select(collection, query, params, triggers);
 ```
 
 collection: The name of the collection on the client-side.
 
-query, params, triggers: see [richie765/pg-live-select](https://github.com/richie765/pg-live-select#livepgprototypeselectquery-params-triggers).
+query, params, triggers: see [richie765/pg-query-observer](https://github.com/richie765/pg-query-observer).
 
 ```javascript
 // Server side
@@ -75,11 +75,13 @@ Meteor.publish('allPlayers', function() {
     ORDER BY score DESC
   `;
 
-  // Standard method, works but signals subscription ready too soon
-  // return mpg.select('players', sql, function(trig) { return true });
+  function triggers() {
+    // This function is rather important.
+    // For now, just trigger any change
+    return true;
+  }
 
-  // Alternative method, produces less flicker on the initial resultset
-  mpg.live_select(this, 'players', sql, function(trig) { return true });
+  return mpg.select('players', sql, undefined, triggers);
 });
 
 // Client side
@@ -120,11 +122,11 @@ Meteor.methods({
   'incScore': function(id, amount){
     let sql = `
       UPDATE players
-      SET score = score + $1
-      WHERE id = $2
+      SET score = score + $[amount]
+      WHERE id = $[id]
     `;
 
-    mpg.none(sql, [ amount, id ]);
+    mpg.none(sql, { id, amount });
   }
 });
 
@@ -144,3 +146,7 @@ Template.leaderboard.events({
   }
 });
 ```
+
+# To do, known issues
+* There is some flicker when using latancy compensation (client-side methods).
+* MongoDB is still required for Accounts (pull requests welcome)
