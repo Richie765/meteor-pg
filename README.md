@@ -13,6 +13,8 @@ It has been used in a small scale production environment quite successfully.
 
 Requires PostgresSQL version 9.3 or above.
 
+For a full working example take a look at: https://github.com/Richie765/meteor-pg-leaderboard
+
 # Installation
 ```bash
 meteor npm install @richie765/meteor-pg --save
@@ -44,6 +46,7 @@ return mpg.select(collection, query, params, triggers);
 ```
 
 Parameter | Description
+--------- | -----------
 `collection` | The name of the Minimongo collection where the results will be stored on the client-side.
 `query` | SELECT query to run and observe. May contain placeholders following `pg-promise`. Each row must contain a unique \_id field as described below.
 `params` | The parameters to the query, following `pg-promise`. Single values will be `$1`. Array elements will be `$1`..`$n`. Object properties will be `$*property*` where `**` is one of `()`, `[]`, `{}` or `//`. See `pg-promise` for details.
