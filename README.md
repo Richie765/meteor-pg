@@ -11,13 +11,11 @@ There are methods available that you can call from your server-side methods.
 
 It has been used in a small scale production environment quite successfully.
 
+Requires PostgresSQL version 9.3 or above.
+
 # Installation
 ```bash
 meteor npm install @richie765/meteor-pg --save
-
-# also needed
-
-npm install babel-runtime --save
 ```
 
 # Configuration
@@ -38,12 +36,23 @@ On the server side, import the package early on to establish the database connec
 import '@richie765/meteor-pg';
 ```
 
-# Usage Example
+# Usage - publication
 
-## Publish / Subscribe (SELECT queries)
-Only use this for read-only SELECT queries that you want to be reactive.
+Within a publish function on the server:
+```javascript
+return mpg.select(collection, query, params, triggers);
+```
 
-Your PostgreSQL query must always return an \_id field which uniquely identifies
+Parameter | Description
+`collection` | The name of the Minimongo collection where the results will be stored on the client-side.
+`query` | SELECT query to run and observe. May contain placeholders following `pg-promise`. Each row must contain a unique \_id field as described below.
+`params` | The parameters to the query, following `pg-promise`. Single values will be `$1`. Array elements will be `$1`..`$n`. Object properties will be `$*property*` where `**` is one of `()`, `[]`, `{}` or `//`. See `pg-promise` for details.
+`triggers` | function(change). The trigger function, see below.
+
+
+## Unique \_id field
+
+Your query must always return an \_id field which uniquely identifies
 each row returned. For simple queries, this could be just an alias to the PK.
 
 For multi-table queries, this could be a combination of different PK's, eg:
@@ -55,13 +64,26 @@ SELECT CONCAT(userid, '-', taskid) AS \_id, * FROM user, task;
 This does not mean you have to include the PK's of all the tables involved.
 You just need to uniquely identify each row returned.
 
-```javascript
-mpg.select(collection, query, params, triggers);
-```
 
-collection: The name of the collection on the client-side.
+## triggers function
 
-query, params, triggers: see [richie765/pg-query-observer](https://github.com/richie765/pg-query-observer).
+This function will be called whenever there is a change to one of the underlying tables of the query.
+You should determine if this change requires a rerun of the query. If so, you should return `true`.
+
+One parameter is passed, `change`. It contains the following fields:
+
+Field | Description
+-------------- | -----------
+`table` | String, name of the table that changed. ***This will always be in lowercase.***
+`insert` | For INSERT, `true`
+`delete` | For DELETE, `true`
+`update` | For UPDATE, an object that contains the old and new values of each changed column. If a column `score` changed from 10 to 20, `change.update.score.from` would be 10 and `change.update.score.to` would be 20.
+`row` | The row values, for UPDATE, the NEW row values
+`old` | For UPDATE, the OLD row values
+
+## Example
+Only use this for read-only SELECT queries that you want to be reactive. For non-reactive
+(SELECT) queries you can use a method.
 
 ```javascript
 // Server side
@@ -100,18 +122,18 @@ Template.leaderboard.helpers({
 });
 ```
 
-## Methods (INSERT, UPDATE queries)
-You can use mpg methods: query, many, one, none, any, oneOrNone, manyOrNone in your
-Meteor methods for your INSERT and UPDATE statements. These methods take the
-same parameters as the methods of [pg-promise](https://github.com/vitaly-t/pg-promise).
-The difference is that these are synchronous and don't return a promise.
-So you can use the return value-directly.
+# Usage - methods
+
+The `mpg` object provides the following methods that you can call within your Meteor methods to execute SQL INSERT and UPDATE statements: `query`, `none`, `one`, `many`, `oneOrNone`, `manyOrNone`, `any`, `result`, `stream`, `func`, `proc`, `map`, `each`, `task`, `tx`.
+
+These methods take the same parameters as the methods of [pg-promise](https://github.com/vitaly-t/pg-promise).
+The difference is that these are called within a fiber using `Promise.await`, so they wait for the statement to be executed. You can
+use the return value directly, it is not a 'promise'.
 
 Use those methods for statements that modify the database, or for select queries
 that don't need to be reactive.
 
-If you need access to pg-promise's db object directly, this is available as
-'mpg.db'.
+## Example
 
 ```javascript
 // Server side
@@ -146,6 +168,13 @@ Template.leaderboard.events({
   }
 });
 ```
+
+# Advanced usage
+For running complex queries, involving multiple JOIN's and/or additional processing in JavaScript,
+you can use `mpg.table_observer` and `mpg.query_observer` directly. For the documentation see
+https://github.com/richie765/pg-table-observer and https://github.com/richie765/pg-query-observer.
+
+If you need direct access to the `pg-promise` object or database handle, they are available as `mpg.pgp` and `mpg.db`.
 
 # To do, known issues
 * There is some flicker when using latancy compensation (client-side methods).
