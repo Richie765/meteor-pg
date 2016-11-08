@@ -3,7 +3,7 @@ This package allows you to use PostgreSQL reactively with Meteor as seamlessly
 as possible.
 
 It provides a method to publish PostgreSQL queries on the server. The query
-result will be available in a Minimongo collection, reactively, on the client-side.
+result will be available reactively on the client in a Minimongo collection.
 The collection can be used in the usual way.
 
 Data modifications (UPDATE, INSERT) can only be made from the server side.
@@ -11,9 +11,9 @@ There are methods available that you can call from your server-side methods.
 
 It has been used in a small scale production environment quite successfully.
 
-Requires PostgresSQL version 9.3 or above.
-
 For a full working example take a look at: https://github.com/Richie765/meteor-pg-leaderboard
+
+Requires PostgresSQL version 9.3 or above.
 
 # Installation
 ```bash
