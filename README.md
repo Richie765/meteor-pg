@@ -17,7 +17,7 @@ Requires PostgresSQL version 9.3 or above.
 
 # Installation
 ```bash
-meteor npm install @richie765/meteor-pg --save
+meteor npm install meteor-pg --save
 ```
 
 # Configuration
@@ -35,7 +35,7 @@ be used by more than one application on the same database.
 # Initialization
 On the server side, import the package early on to establish the database connection. Your `/server/main.js` file would be a good place to do this.
 ```javascript
-import '@richie765/meteor-pg';
+import 'meteor-pg';
 ```
 
 # Usage - publication
@@ -100,7 +100,7 @@ function trigger({ table, row }) {
 ```javascript
 // Server side
 
-import mpg from '@richie765/meteor-pg';
+import mpg from 'meteor-pg';
 
 Meteor.publish('allPlayers', function() {
   let sql = `
@@ -147,7 +147,7 @@ use the return value directly, it is not a 'promise'.
 ```javascript
 // Server side
 
-import mpg from '@richie765/meteor-pg';
+import mpg from 'meteor-pg';
 
 Meteor.methods({
   'incScore': function(id, amount){
