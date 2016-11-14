@@ -1,4 +1,4 @@
-# @richie765/meteor-pg
+# meteor-pg
 This package allows you to use PostgreSQL reactively with Meteor as seamlessly
 as possible.
 
@@ -91,8 +91,8 @@ ES6 syntax makes it easy to write your trigger function, e.g.:
 
 ```javascript
 function trigger({ table, row }) {
-  if(table === 'user' and row.name === 'name') return true;
-  if(table === 'task' and row.status === 'completed') return true;
+  if(table === 'user' && row.name === 'name') return true;
+  if(table === 'task' && row.status === 'completed') return true;
 }
 ```
 
