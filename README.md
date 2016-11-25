@@ -57,14 +57,14 @@ Parameter | Description
 
 ## Unique \_id field
 
-Your query must always return an \_id field which uniquely identifies
+Your query must always return an `_id` field which uniquely identifies
 each row returned. This is needed so that the changed rows can be identified.
 For simple queries, this could just be an alias to the PK.
 
 For multi-table queries, this could be a combination of different PK's, eg:
 
 ```sql
-SELECT CONCAT(userid, '-', taskid) AS \_id, * FROM user, task;
+SELECT CONCAT(userid, '-', taskid) AS _id, * FROM user, task;
 ```
 
 This does not mean you have to include the PK's of all the tables involved.
@@ -96,7 +96,7 @@ function trigger({ table, row }) {
 }
 ```
 
-## Example - pubication
+## Example - publication
 ```javascript
 // Server side
 
