@@ -24,7 +24,7 @@ meteor npm install meteor-pg --save
 There are two environment variables used to configure your database connection.
 
 ```bash
-export PG_SQL=postgres://user:password@host:port/db
+export PG_URL=postgres://user:password@host:port/db
 export PG_CHANNEL=your_channel
 meteor run
 ```
