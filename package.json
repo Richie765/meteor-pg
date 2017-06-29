@@ -1,6 +1,6 @@
 {
   "name": "meteor-pg",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "This module makes live PostgreSQL select queries work with the Meteor publish/subscribe mechanism.",
   "main": "dist/mpg-es6.js",
   "dependencies": {
