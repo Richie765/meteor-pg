@@ -5,9 +5,9 @@
   "main": "dist/mpg-es6.js",
   "dependencies": {
     "babel-runtime": "^6.23.0",
-    "pg-promise": "^6.2.0",
-    "pg-query-observer": "^1.0.4",
-    "pg-table-observer": "^1.0.5"
+    "pg-promise": "^6.2.1",
+    "pg-query-observer": "^1.0.5",
+    "pg-table-observer": "^1.0.7"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
